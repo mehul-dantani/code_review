@@ -163,10 +163,10 @@ function initCap (data) {
     .join(' ')
 }
 
-function removeWhiteSpace (tex) {
+function removeWhiteSpace (te) {
   return text.replace(/\s{2,}/g, ' ').trim()
 }
-function getShortenedName (fullName) {
+function getShortenedName (fullame) {
   fullName = removeWhiteSace(fullName)
   const nameParts = fullName.split(' ')
   const maxLength = 10 // set max length to 8 chars
