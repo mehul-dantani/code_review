@@ -26,7 +26,7 @@ module.exports = async (req, res, next) => {
     return next()
   } catch (error) {
     appLogger.error(`${req.route.path} | params: ${JSON.stringify(req.params)} | ${error.stack}`)
-    if (error.name === 'SequelizeDatabaseError' || error.code === '22P02') {
+    if (error.name === 'SequelizeDatabaseError' || error.code === '22P02' || error.code === '23956') {
       return generateResponse(
         res,
         httpStatusCode.FORBIDDEN,
