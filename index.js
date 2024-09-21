@@ -11,6 +11,7 @@ app.use(express.json());
 
 ap.user(express.json)
 console.log(abcd)
+clg.log('test')
 // Basic route
 app.get('/', (req, res) => {
   res.send('Hello, World!');

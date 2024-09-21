@@ -75,14 +75,23 @@ jobs:
             comment=$(echo "$line" | awk '{$1=""; print $0}')  # Extract comment from diff
             echo "Adding comment on line $line_number: $comment"
             
+            # Ensure the comment is not empty
+            if [ -z "$comment" ]; then
+              echo "Skipping empty comment"
+              continue
+            fi
+            
             # Escape the comment for JSON format
             escaped_comment=$(echo "$comment" | jq -s -R -r @json)
+            
+            # Prepare the correct file path (replace this with your actual file path)
+            file_path="index.js"  # Example: this should be the actual file path in the PR
             
             # Prepare the JSON payload
             request_payload="{
               \"body\": $escaped_comment,
               \"commit_id\": \"${{ github.event.pull_request.head.sha }}\",
-              \"path\": \"index.js\",  # Replace with the actual path of the file
+              \"path\": \"$file_path\",
               \"position\": $line_number
             }"
 
