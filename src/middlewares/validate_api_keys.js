@@ -20,7 +20,7 @@ module.exports = async (req, res, next) => {
       await setCache(redisKey, dbApiKey, REDDIS_EXPIRY_ONE_YEAR) // 1 year expiry
     }
     if (!dbApiKey || dbApiKey !== apiKey) {
-      throw new Error('The request is missing a valid API key.')
+      throw new Error('You need to pass a valid api key')
     }
 
     return next()
