@@ -1,0 +1,14 @@
+# Logs
+logs
+*.log
+yarn-debug.log*
+yarn-error.log*
+
+# dotenv environment variable files
+.env
+
+# Dependency directories
+node_modules/
+
+#lock file
+yarn.lock*
