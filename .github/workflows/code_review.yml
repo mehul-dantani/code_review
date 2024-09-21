@@ -40,7 +40,7 @@ jobs:
           echo "Making request to GPT-4 with escaped code"
           request_payload="{
               \"messages\": [
-                { \"role\": \"system\", \"content\": \"Review the Node.js code, highlighting issues only when necessary and suggesting improvements. Use clear, simple language, limit explanations to 50 characters per issue, categorize as High (Must DO), Medium (Good to have), or Low (Info), and assess PR mergability with a confidence percentage in red (< 70) or green (≥ 70); avoid renaming variables or trivial comments.\" },
+                { \"role\": \"system\", \"content\": \"Review the Node.js code, highlighting issues only when necessary and suggesting improvements. Use clear, simple language, limit explanations to 50 characters per issue, categorize as High (Must DO), Medium (Good to have), or Low (Info), and assess PR mergability with a confidence percentage in red color( when < 70%) or green color (≥ 70%) show % in last step with explanation; avoid renaming variables or trivial comments.\" },
                 { \"role\": \"user\", \"content\": $escaped_code }
               ]
             }"
