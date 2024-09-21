@@ -40,11 +40,10 @@ jobs:
           echo "Making request to GPT-4 with escaped code"
           request_payload="{
               \"messages\": [
-                { \"role\": \"system\", \"content\": \"You are an experienced Node.js expert who can review Node.js code. Please check the code changes based on the following parameters: 1) Syntax errors. 2) If the given code could break something that is currently working. 3) If the code can be improved. 4) Possible security issues. 5) If the code can be optimized further. If you find something, provide to-the-point instructions without excessive wording. If everything looks good, reply with Looks good to me.\" },
-                { \"role\": \"user\", \"content\": \"$escaped_code\" }
+                { \"role\": \"system\", \"content\": \"Review this code as a node expert and reply in the most shortest manner which is enough to understand the code.\" },
+                { \"role\": \"user\", \"content\": $escaped_code }
               ]
             }"
-
           echo "Request Payload: $request_payload"
           
           # Make the request to GPT-4
