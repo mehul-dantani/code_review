@@ -3,7 +3,7 @@ name: GPT Code Review
 on:
   pull_request:
     branches:
-      - develop  # Specify the branch to run on
+      - master  # Specify the branch to run on
 
 permissions:
   contents: read
