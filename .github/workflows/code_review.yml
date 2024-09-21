@@ -29,14 +29,19 @@ jobs:
         run: |
           # Read the list of changed files
           changed_files=$(cat ${{ steps.git-diff.outputs.raw-diff-path }} | grep 'diff --git' | awk '{print $3}' | sed 's|b/||')
-          
+
           echo "Changed files: $changed_files"
           
           for file in $changed_files; do
             echo "Processing file: $file"
 
             # Get the diff for the current file
-            file_diff=$(grep -A 1000 "diff --git a/$file b/$file" ${{ steps.git-diff.outputs.raw-diff-path }} | grep -B 1000 "^diff --git" | head -n -1)
+            file_diff=$(awk "/^diff --git a\/$file b\/$file/,/^diff --git/" ${{ steps.git-diff.outputs.raw-diff-path }} | sed '$d')
+
+            if [ -z "$file_diff" ]; then
+              echo "No changes found for $file"
+              continue
+            fi
 
             echo "File Diff: $file_diff"
             
@@ -46,7 +51,7 @@ jobs:
             # Prepare the request payload for OpenAI
             request_payload="{
               \"messages\": [
-                { \"role\": \"system\", \"content\": \"Review the provided Node.js code. Point out issues only when necessary and suggest improvements where applicable. Use clear, simple language, and avoid unnecessary verbosity. If everything looks good, respond with all good. Provide explanations in the most concise and understandable way possible. You don't need to provide an updated code just show where the error lies. If there are no suggestions then you don't even need to mention it in output. Make sure that for one issue you need to respond within 50 chars. overall you can take more then 50 but for one issue only max 50. Also you need to categorize the review points in 3 prioriteis. High(Must DO), Medium( Good to have), Low(Info).\" },
+                { \"role\": \"system\", \"content\": \"Review the provided Node.js code. Point out issues only when necessary and suggest improvements where applicable. Use clear, simple language, and avoid unnecessary verbosity. If everything looks good, respond with all good. Provide explanations in the most concise and understandable way possible. You don't need to provide an updated code just show where the error lies. If there are no suggestions then you don't even need to mention it in output. Make sure that for one issue you need to respond within 50 chars. overall you can take more than 50 but for one issue only max 50. Also you need to categorize the review points in 3 priorities. High(Must DO), Medium( Good to have), Low(Info).\" },
                 { \"role\": \"user\", \"content\": $escaped_diff }
               ]
             }"
