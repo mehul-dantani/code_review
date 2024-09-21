@@ -9,9 +9,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware to parse JSON requests
 app.use(express.json());
 
-ap.user(express.json)
-console.log(abcd)
-clg.log('test')
+ap.user(express.json)&&
 // Basic route
 app.get('/', (req, res) => {
   res.send('Hello, World!');

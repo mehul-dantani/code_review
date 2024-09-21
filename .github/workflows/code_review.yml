@@ -67,11 +67,18 @@ jobs:
           # Save the suggestions to a file
           echo "$code_review_suggestions" > code_suggestions.txt
 
-      # Step 3: Add Code Suggestions to Specific Lines with Logging
+      # Step 3: Add Code Suggestions to Specific Lines with Logging and Validation
       - name: Add Code Suggestions to Specific Lines
         run: |
           while IFS= read -r line; do
             line_number=$(echo "$line" | awk '{print $1}')  # Extract line number from diff
+            
+            # Ensure line_number is a valid number before proceeding
+            if ! [[ "$line_number" =~ ^[0-9]+$ ]]; then
+              echo "Invalid line number: $line_number. Skipping."
+              continue
+            fi
+            
             comment=$(echo "$line" | awk '{$1=""; print $0}')  # Extract comment from diff
             echo "Adding comment on line $line_number: $comment"
             
@@ -87,13 +94,19 @@ jobs:
             # Prepare the correct file path (replace this with your actual file path)
             file_path="index.js"  # Example: this should be the actual file path in the PR
             
-            # Prepare the JSON payload
-            request_payload="{
-              \"body\": $escaped_comment,
-              \"commit_id\": \"${{ github.event.pull_request.head.sha }}\",
-              \"path\": \"$file_path\",
-              \"position\": $line_number
-            }"
+            # Prepare the JSON payload ensuring it's valid JSON
+            request_payload=$(jq -n \
+              --arg body "$escaped_comment" \
+              --arg commit_id "${{ github.event.pull_request.head.sha }}" \
+              --arg path "$file_path" \
+              --argjson position "$line_number" \
+              '{
+                body: $body,
+                commit_id: $commit_id,
+                path: $path,
+                position: $position
+              }'
+            )
 
             # Log the payload for debugging purposes
             echo "Request payload to GitHub API: $request_payload"
