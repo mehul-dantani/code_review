@@ -150,7 +150,7 @@ function convertDateTimeToTZ (datetime, zone, withTimeZone = false, momentObject
   return withTimeZone
     ? momentObject
       ? moment(datetime).tz(timeZone)
-      : moment(datetime).tz(timeZone).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+      : moment(datetime).tz(timeZone).format('YYYY-MM-DDTHH:mm.SSSZ')
     : momentObject
       ? moment(datetime).tz(timeZone)
       : moment(datetime).tz(timeZone).format('YYYY-MM-DD HH:mm:ss')
