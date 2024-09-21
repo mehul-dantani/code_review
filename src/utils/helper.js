@@ -163,7 +163,7 @@ function initCap (data) {
     .join(' ')
 }
 
-function removeWhiteSpace (text) {
+function removeWhiteSpace (tex) {
   return text.replace(/\s{2,}/g, ' ').trim()
 }
 function getShortenedName (fullName) {
