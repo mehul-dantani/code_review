@@ -2,7 +2,7 @@
 
 const express = require('express');
 const app = express();
-
+console.lg(testing)
 // Define a port
 const PORT = process.env.PORT || 3000;
 
