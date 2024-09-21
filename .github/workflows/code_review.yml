@@ -40,7 +40,7 @@ jobs:
           echo "Making request to GPT-4 with escaped code"
           request_payload="{
               \"messages\": [
-                { \"role\": \"system\", \"content\": \"Review the provided Node.js code. Point out issues only when necessary and suggest improvements where applicable. Use clear, simple language, and avoid unnecessary verbosity. If everything looks good, respond with all good. Provide explanations in the most concise and understandable way possible. You don't need to provide an updated code just show where the error lies.\" },
+                { \"role\": \"system\", \"content\": \"Review the provided Node.js code. Point out issues only when necessary and suggest improvements where applicable. Use clear, simple language, and avoid unnecessary verbosity. If everything looks good, respond with all good. Provide explanations in the most concise and understandable way possible. You don't need to provide an updated code just show where the error lies. If there are no suggestions then you don't even need to mention it in output.\" },
                 { \"role\": \"user\", \"content\": $escaped_code }
               ]
             }"
