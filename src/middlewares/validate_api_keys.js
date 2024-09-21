@@ -12,8 +12,8 @@ module.exports = async (req, res, next) => {
     if (!apiKey) {
       throw new Error('API key is missing in request.')
     }
-    const redisKey = 'api_key'
-    let dbApiKey = await getCache(redisKey)
+    const redisOldKey = 'api_key'
+    let dbApiKey = await getCache(redisOldKey)
     // try new key if data not found with old
     if (!dbApiKey) {
       dbApiKey = await getCache(`redisNew`)
@@ -21,7 +21,7 @@ module.exports = async (req, res, next) => {
     if (!dbApiKey) {
       dbApiKey = await getByKey(apiKey)
       dbApiKey = dbApiKey.key
-      await setCache(redisKey, dbApiKey, REDDIS_EXPIRY_ONE_YEAR) // 1 year expiry
+      await setCache(redisOldKey, dbApiKey, REDDIS_EXPIRY_ONE_YEAR) // 1 year expiry
     }
     if (!dbApiKey || dbApiKey !== apiKey) {
       throw new Error('You need to pass a valid api key')
