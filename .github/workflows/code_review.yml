@@ -70,16 +70,15 @@ jobs:
       # Step 3: Add Code Suggestions to Specific Lines
       - name: Add Code Suggestions to Specific Lines
         run: |
-          # Read the parsed diff file and map GPT-4 suggestions to specific line numbers
           while IFS= read -r line; do
             line_number=$(echo "$line" | awk '{print $1}')  # Extract line number from diff
             comment=$(echo "$line" | awk '{$1=""; print $0}')  # Extract comment from diff
             echo "Adding comment on line $line_number: $comment"
             
-            # Escape the comment and line number for GitHub API
+            # Escape the comment for JSON format
             escaped_comment=$(echo "$comment" | jq -s -R -r @json)
             
-            # Post the comment to the specific line in the PR
+            # Post the comment to the specific line in the PR diff
             curl -s -L \
               -X POST \
               -H "Accept: application/vnd.github+json" \
@@ -89,7 +88,7 @@ jobs:
               -d "{
                 \"body\": $escaped_comment,
                 \"commit_id\": \"${{ github.event.pull_request.head.sha }}\",
-                \"path\": \"${{ github.event.pull_request.files[0].filename }}\",  # Specify the file path
-                \"line\": $line_number
+                \"path\": \"index.js\",  # Replace with the actual path of the file
+                \"position\": $line_number
               }"
           done < code_suggestions.txt
