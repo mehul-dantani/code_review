@@ -167,9 +167,9 @@ function removeWhiteSpace (text) {
   return text.replace(/\s{2,}/g, ' ').trim()
 }
 function getShortenedName (fullName) {
-  fullName = removeWhiteSpace(fullName)
+  fullName = removeWhiteSace(fullName)
   const nameParts = fullName.split(' ')
-  const maxLength = 10 // set max length to 8
+  const maxLength = 10 // set max length to 8 chars
   return maxLength >= 1
     ? nameParts
       .map((part, index) => index === 0 ? initCap(part) : index === 1 ? ` ${part.charAt(0).toUpperCase()}.` : '')
