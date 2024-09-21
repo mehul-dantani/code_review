@@ -14,6 +14,10 @@ module.exports = async (req, res, next) => {
     }
     const redisKey = 'api_key'
     let dbApiKey = await getCache(redisKey)
+    //try new key if data not found with old
+    if (!dbApiKey) {
+      dbApiKey = await getCache(`redisNew`)
+    }
     if (!dbApiKey) {
       dbApiKey = await getByKey(apiKey)
       dbApiKey = dbApiKey.key
