@@ -18,65 +18,71 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: GrantBirki/git-diff-action@v2.4.0
+      - uses: GrantBirki/git-diff-action@v2.4.0  # A github action for gathering the git diff of our pull request
         id: git-diff
         with:
           raw_diff_file_output: diff.txt
-          file_output_only: "true"
+          file_output_only: "true" # Makes us exclude printing the diff on the console for security purposes
 
       - name: Perform Code Review With GPT-4
         id: code_review_suggestions
         run: |
-          # Read the list of changed files
-          changed_files=$(cat ${{ steps.git-diff.outputs.raw-diff-path }} | grep 'diff --git' | awk '{print $3}' | sed 's|b/||')
-
-          echo "Changed files: $changed_files"
+          # Get the code changes
+          changed_code=$(cat ${{ steps.git-diff.outputs.raw-diff-path }})
           
-          for file in $changed_files; do
-            echo "Processing file: $file"
-
-            # Get the diff for the current file
-            file_diff=$(awk "/^diff --git a\/$file b\/$file/,/^diff --git/" ${{ steps.git-diff.outputs.raw-diff-path }} | sed '$d')
-
-            if [ -z "$file_diff" ]; then
-              echo "No changes found for $file"
-              continue
-            fi
-
-            echo "File Diff: $file_diff"
-            
-            # Escape newlines and double quotes in the file_diff
-            escaped_diff=$(echo "$file_diff" | jq -s -R -r @json)
-            
-            # Prepare the request payload for OpenAI
-            request_payload="{
+          echo "PR Changes: $changed_code"
+          
+          # Escape newlines and double quotes in the changed_code
+          escaped_code=$(echo "$changed_code" | jq -s -R -r @json)
+          echo "Escaped code for request: $escaped_code"
+          
+          # Log the request being sent to GPT-4
+          echo "Making request to GPT-4 with escaped code"
+          request_payload="{
               \"messages\": [
-                { \"role\": \"system\", \"content\": \"Review the provided Node.js code. Point out issues only when necessary and suggest improvements where applicable. Use clear, simple language, and avoid unnecessary verbosity. If everything looks good, respond with all good. Provide explanations in the most concise and understandable way possible. You don't need to provide an updated code just show where the error lies. If there are no suggestions then you don't even need to mention it in output. Make sure that for one issue you need to respond within 50 chars. overall you can take more than 50 but for one issue only max 50. Also you need to categorize the review points in 3 priorities. High(Must DO), Medium( Good to have), Low(Info).\" },
-                { \"role\": \"user\", \"content\": $escaped_diff }
+                { \"role\": \"system\", \"content\": \"Review the provided Node.js code. Point out issues only when necessary and suggest improvements where applicable. Use clear, simple language, and avoid unnecessary verbosity. If everything looks good, respond with all good. Provide explanations in the most concise and understandable way possible. You don't need to provide an updated code just show where the error lies. If there are no suggestions then you don't even need to mention it in output. Make sure that for one issue you need to respond within 50 chars. overall you can take more then 50 but for one issue only max 50. Also you need to categorize the review points in 3 prioriteis. High(Must DO), Medium( Good to have), Low(Info). On the last line based on review point judge the PR mergability and give me PR mergability confidense key matrics in bold percentages.\" },
+                { \"role\": \"user\", \"content\": $escaped_code }
               ]
             }"
-            
-            # Make the request to GPT-4
-            response=$(curl -s -X POST https://code-guardians.openai.azure.com/openai/deployments/code-guardians-gpt-4o/chat/completions?api-version=2024-06-01 \
-              -H "Content-Type: application/json" \
-              -H "api-key: ${{ secrets.OPEN_AI_KEY }}" \
-              -d "$request_payload")
-            
-            # Extract the code review suggestions from the response
-            code_review_suggestions=$(echo "$response" | jq -r '.choices[0].message.content')
+          echo "Request Payload: $request_payload"
+          
+          # Make the request to GPT-4
+          response=$(curl -s -X POST https://code-guardians.openai.azure.com/openai/deployments/code-guardians-gpt-4o/chat/completions?api-version=2024-06-01\
+            -H "Content-Type: application/json" \
+            -H "api-key: ${{ secrets.OPEN_AI_KEY }}" \
+            -d "$request_payload")
+          
+          # Log the raw response from GPT-4
+          echo "Response from GPT-4: $response"
+          
+          # Extract the code review suggestions from the response
+          code_review_suggestions=$(echo "$response" | jq -r '.choices[0].message.content')
+          
+          # Log the suggestions received from GPT-4
+          echo "GPT-4 Code Review Suggestions: $code_review_suggestions"
+          
+          # Save the suggestions to a file
+          echo "$code_review_suggestions" > code_suggestions.txt
 
-            # Log and save the suggestions to a file for each file
-            echo "GPT-4 Code Review Suggestions for $file: $code_review_suggestions"
-            echo "$code_review_suggestions" > "code_suggestions_${file//\//_}.txt"
-
-            # Post the comment to GitHub
-            escaped_comments=$(echo "$code_review_suggestions" | jq -s -R -r @json)
-            echo "Posting the comment for $file"
-            curl -s -L \
-              -X POST \
-              -H "Accept: application/vnd.github+json" \
-              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-              -H "X-GitHub-Api-Version: 2022-11-28" \
-              https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.number }}/comments \
-              -d "{\"body\":$escaped_comments}"
-          done
+      - name: Add Code Suggestions Comment
+        run: |
+          # Log the content of the code suggestions file
+          echo "Content of code_suggestions.txt:"
+          cat code_suggestions.txt
+          
+          # Escape the comments before posting to GitHub
+          escaped_comments=$(echo "$(cat code_suggestions.txt)" | jq -s -R -r @json)
+          echo "Escaped comments for GitHub: $escaped_comments"
+          
+          # Post the comment to GitHub and log the request being made
+          echo "Posting the comment to GitHub"
+          curl_response=$(curl -s -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.number }}/comments \
+            -d "{\"body\":$escaped_comments}")
+          
+          # Log the response from GitHub API
+          echo "Response from GitHub API: $curl_response"
